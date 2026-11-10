@@ -73,23 +73,33 @@ Akcija: Klijent očekuje povratni kontakt i ponudu.`;
   };
 
   const mailtoUrl = `mailto:${encodeURIComponent(currentRecipient)}?subject=${encodeURIComponent(currentSubject)}&body=${encodeURIComponent(currentBody)}`;
+  const gmailWebComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentRecipient)}&su=${encodeURIComponent(currentSubject)}&body=${encodeURIComponent(currentBody)}`;
 
-  const handleSendViaGmail = async () => {
+  const handleSendViaServer = async () => {
     setIsSendingViaGmail(true);
     setGmailStatusText(null);
     try {
-      const res = await dispatchDiagnosticReportEmail(client);
-      setGmailStatusText(res.message);
-      if (res.success) {
-        onMarkAsSent(client.id);
-        setSentSuccess(true);
-        setTimeout(() => {
-          setSentSuccess(false);
-          onClose();
-        }, 2200);
+      if (activeTab === 'dragana_notifikacija') {
+        const res = await fetch('/api/send-admin-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client, customText: currentBody })
+        });
+        const data = await res.json();
+        setGmailStatusText(data.message || 'Obaveštenje obrađeno.');
+        if (data.success) {
+          setSentSuccess(true);
+        }
+      } else {
+        const res = await dispatchDiagnosticReportEmail(client);
+        setGmailStatusText(res.message);
+        if (res.success) {
+          onMarkAsSent(client.id);
+          setSentSuccess(true);
+        }
       }
     } catch (err: any) {
-      setGmailStatusText('Greška pri slanju preko Gmail-a: ' + (err.message || 'Proverite vezu'));
+      setGmailStatusText('Greška pri slanju: ' + (err.message || 'Proverite server'));
     } finally {
       setIsSendingViaGmail(false);
     }
@@ -230,19 +240,34 @@ Akcija: Klijent očekuje povratni kontakt i ponudu.`;
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
+              {/* Direct 1-Click Gmail Web Compose (Zero Google blocks, 100% reliable) */}
+              <a
+                href={gmailWebComposeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => onMarkAsSent(client.id)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+                title="Otvori Gmail u novom tabu sa popunjenim tekstom i primaocem"
+              >
+                <Mail className="w-3.5 h-3.5 text-white" />
+                <span>✉️ Otvori u mom Gmail-u (1 klik)</span>
+                <ExternalLink className="w-3 h-3 text-red-200" />
+              </a>
+
+              {/* Server Background Send */}
               <button
                 type="button"
-                onClick={handleSendViaGmail}
+                onClick={handleSendViaServer}
                 disabled={isSendingViaGmail}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-60"
-                title="Pošalji direktno putem Gmail API servisa"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+                title="Pošalji automatski preko servera (zahteva unetu lozinku za aplikacije)"
               >
                 {isSendingViaGmail ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400" />
                 ) : (
                   <Send className="w-3.5 h-3.5 text-blue-300" />
                 )}
-                <span>{isSendingViaGmail ? 'Slanje...' : 'Pošalji preko Gmail-a'}</span>
+                <span>{isSendingViaGmail ? 'Slanje...' : '⚡ Pošalji sa servera'}</span>
               </button>
 
               <a
@@ -250,19 +275,18 @@ Akcija: Klijent očekuje povratni kontakt i ponudu.`;
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => onMarkAsSent(client.id)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2761ff] hover:bg-[#1b4fd8] text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs border border-slate-300 transition-colors cursor-pointer"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Otvori u Email klijentu (mailto:)</span>
+                <span>Desktop Mail (mailto:)</span>
               </a>
 
               <button
                 type="button"
                 onClick={handleSimulateSend}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
               >
                 <Check className="w-3.5 h-3.5" />
-                <span>Zabeleži kao poslato</span>
+                <span>Zabeleži poslato</span>
               </button>
             </div>
           </div>

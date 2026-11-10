@@ -10,14 +10,12 @@ import { app } from './firebase';
 
 export const auth = getAuth(app);
 
-// Request Gmail send and Calendar events scopes for People Pro operations
+// Google Calendar events scope for People Pro operations
 export const SCOPES = [
-  'https://www.googleapis.com/auth/gmail.send',
   'https://www.googleapis.com/auth/calendar.events'
 ];
 
 const provider = new GoogleAuthProvider();
-provider.addScope('https://www.googleapis.com/auth/gmail.send');
 provider.addScope('https://www.googleapis.com/auth/calendar.events');
 provider.setCustomParameters({
   prompt: 'select_account'

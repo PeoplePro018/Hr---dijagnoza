@@ -21,7 +21,7 @@ app.use(express.json());
 const apiKey = process.env.GEMINI_API_KEY;
 
 // Configure Nodemailer transporter if credentials provided
-const smtpUser = process.env.SMTP_USER || 'dragana.peoplepro@gmail.com';
+let currentSmtpUser = process.env.SMTP_USER || 'dragana.peoplepro@gmail.com';
 const smtpPass = process.env.SMTP_PASS;
 let mailTransporter: any = null;
 
@@ -31,13 +31,13 @@ if (smtpPass) {
     port: Number(process.env.SMTP_PORT) || 587,
     secure: false,
     auth: {
-      user: smtpUser,
-      pass: smtpPass
+      user: currentSmtpUser,
+      pass: smtpPass.replace(/\s+/g, '')
     }
   });
-  console.log(`[SMTP] Mail transporter konfigurisan za nalog: ${smtpUser}`);
+  console.log(`[SMTP] Mail transporter konfigurisan za nalog: ${currentSmtpUser}`);
 } else {
-  console.log('[SMTP] SMTP_PASS nije postavljen u .env fajlu. Koriste se Gmail OAuth i klijentska isporuka.');
+  console.log('[SMTP] SMTP_PASS nije postavljen u .env fajlu. Dostupno je slanje u 1 klik preko Gmail-a.');
 }
 let ai: GoogleGenAI | null = null;
 
@@ -180,7 +180,7 @@ app.post('/api/send-report', async (req, res) => {
     if (mailTransporter && recipient) {
       try {
         await mailTransporter.sendMail({
-          from: `"Dragana Stanimirović | People Pro" <${smtpUser}>`,
+          from: `"Dragana Stanimirović | People Pro" <${currentSmtpUser}>`,
           to: recipient,
           cc: 'dragana.peoplepro@gmail.com',
           subject: subject || `People Pro HR Dijagnoza – Rezultati za ${companyName}`,
@@ -211,6 +211,89 @@ app.post('/api/send-report', async (req, res) => {
   } catch (error: any) {
     console.error('Error in /api/send-report:', error);
     res.status(500).json({ error: 'Neuspešna obrada slanja izveštaja.' });
+  }
+});
+
+// Check current SMTP setup status
+app.get('/api/settings/smtp', (req, res) => {
+  res.json({
+    configured: !!mailTransporter,
+    user: currentSmtpUser
+  });
+});
+
+// Test and save SMTP credentials (Google App Password)
+app.post('/api/settings/smtp', async (req, res) => {
+  try {
+    const { user, pass } = req.body;
+    if (!user || !pass) {
+      return res.status(400).json({ error: 'Molimo unesite email i lozinku za aplikaciju (App Password).' });
+    }
+
+    const cleanUser = String(user).trim();
+    const cleanPass = String(pass).trim().replace(/\s+/g, '');
+
+    const testTransporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: cleanUser,
+        pass: cleanPass
+      }
+    });
+
+    await testTransporter.verify();
+
+    mailTransporter = testTransporter;
+    currentSmtpUser = cleanUser;
+
+    // Send a test confirmation email
+    await mailTransporter.sendMail({
+      from: `"People Pro HR Sistem" <${cleanUser}>`,
+      to: cleanUser,
+      subject: '✅ Uspešno povezano automatsko slanje za People Pro!',
+      text: `Poštovana Dragana,\n\nVaša Google lozinka za aplikaciju je uspešno potvrđena!\n\nOd sada će se svi izveštaji i obaveštenja o novim popunjenim upitnicima i zakazanim terminima automatski slati u pozadini bez potrebe za ručnim slanjem.\n\nSrdačan pozdrav,\nPeople Pro HR Konsalting\n"Vaš partner za ljudske resurse sa srcem"`
+    });
+
+    res.json({
+      success: true,
+      message: `Uspešno povezano! Test email je poslat na ${cleanUser}. Automatsko slanje u pozadini je sada aktivno.`
+    });
+  } catch (err: any) {
+    console.error('SMTP test error:', err);
+    res.status(400).json({
+      error: 'Google nije prihvatio unetu šifru. Važna napomena: Gmail zahteva 16-slovnu "Lozinku za aplikacije" (Google App Password) sa stranice myaccount.google.com/apppasswords, a ne Vašu uobičajenu lozinku naloga: ' + (err.message || '')
+    });
+  }
+});
+
+// Send notification email directly to Dragana
+app.post('/api/send-admin-notification', async (req, res) => {
+  try {
+    const { client, customText } = req.body;
+    if (!client) return res.status(400).json({ error: 'Nema podataka o klijentu.' });
+
+    const subject = `[NOVA HR PRIJAVA] ${client.companyInfo.companyName} (${client.scores.overallScore}%)`;
+    const text = customText || `Zdravo Dragana,\n\nUpravo je pristigla nova popunjena HR dijagnostika na portalu People Pro:\n\n• Kompanija: ${client.companyInfo.companyName}\n• Kontakt: ${client.companyInfo.contactPerson} (${client.companyInfo.phone})\n• Email: ${client.companyInfo.email}\n• HR Indeks: ${client.scores.overallScore}%\n• Crvene tačke: ${client.scores.redPoints.length}\n• Paket: ${client.scores.recommendedTier}\n\nPregled je sačuvan u Vašoj administratorskoj bazi.`;
+
+    if (mailTransporter) {
+      await mailTransporter.sendMail({
+        from: `"People Pro Sistem" <${currentSmtpUser}>`,
+        to: 'dragana.peoplepro@gmail.com',
+        subject,
+        text
+      });
+      return res.json({ success: true, method: 'smtp', message: 'Potvrda je uspešno poslata na Vaš email dragana.peoplepro@gmail.com!' });
+    }
+
+    return res.json({
+      success: true,
+      method: 'logged',
+      message: 'Obaveštenje zabeleženo. Za direktno slanje koristite dugme "Otvori u Gmail-u" ili podesite lozinku za aplikacije.'
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
   }
 });
 

@@ -36,6 +36,8 @@ import { GoogleSignInButton } from './GoogleSignInButton';
 import { getAccessToken } from '../lib/googleAuth';
 import { createGoogleCalendarEvent, generateGoogleCalendarWebUrl, downloadIcsCalendarFile } from '../lib/calendarService';
 import { updateSubmissionBookingInFirestore } from '../lib/firebase';
+import { SmtpSettingsModal } from './SmtpSettingsModal';
+import { buildClientEmailContent } from '../utils/emailService';
 
 interface AdminDashboardProps {
   clients: ClientSubmission[];
@@ -67,6 +69,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [inspectClient, setInspectClient] = useState<ClientSubmission | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [showSmtpModal, setShowSmtpModal] = useState(false);
 
   const handleSyncBookingToGoogle = async (client: ClientSubmission) => {
     if (!client.booking) return;
@@ -193,6 +196,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         <div className="flex flex-wrap items-center gap-2.5">
           <GoogleSignInButton />
+
+          <button
+            type="button"
+            onClick={() => setShowSmtpModal(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm border border-slate-300 shadow-2xs transition-colors cursor-pointer"
+            title="Podešavanje automatskog slanja izveštaja i obaveštenja (Gmail / SMTP)"
+          >
+            <Mail className="w-4 h-4 text-[#2761ff]" />
+            <span>Podešavanje Email-a</span>
+          </button>
 
           <button
             type="button"
@@ -777,13 +790,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <Eye className="w-4 h-4" />
                           </button>
 
+                          {/* 1-Click Direct Gmail Compose Link (Always works 100%, zero blocks) */}
+                          {(() => {
+                            const mailContent = buildClientEmailContent(client);
+                            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(client.companyInfo.email)}&su=${encodeURIComponent(mailContent.subject)}&body=${encodeURIComponent(mailContent.body)}`;
+                            return (
+                              <a
+                                href={gmailUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors inline-flex items-center"
+                                title="Otvori u mom Gmail-u sa popunjenim izveštajem (1 klik)"
+                              >
+                                <Mail className="w-4 h-4 text-red-500" />
+                              </a>
+                            );
+                          })()}
+
                           <button
                             type="button"
                             onClick={() => onOpenEmailModal(client)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                            title="Generiši i pošalji personalizovan izveštaj"
+                            title="Pregledaj i izmeni tekst mejla pre slanja"
                           >
-                            <Mail className="w-4 h-4" />
+                            <FileText className="w-4 h-4 text-[#2761ff]" />
                           </button>
 
                           <button
@@ -1007,6 +1037,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* SMTP Email Settings Modal */}
+      <SmtpSettingsModal
+        isOpen={showSmtpModal}
+        onClose={() => setShowSmtpModal(false)}
+      />
     </div>
   );
 };

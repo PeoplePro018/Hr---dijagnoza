@@ -122,6 +122,7 @@ export const InteractiveResults: React.FC<InteractiveResultsProps> = ({
 
   const emailContent = buildClientEmailContent(client);
   const clientMailtoUrl = `mailto:${companyInfo.email}?cc=dragana.peoplepro@gmail.com&subject=${encodeURIComponent(emailContent.subject)}&body=${encodeURIComponent(emailContent.body)}`;
+  const clientGmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(companyInfo.email)}&cc=dragana.peoplepro@gmail.com&su=${encodeURIComponent(emailContent.subject)}&body=${encodeURIComponent(emailContent.body)}`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -185,13 +186,24 @@ export const InteractiveResults: React.FC<InteractiveResultsProps> = ({
             )}
           </button>
 
+          {/* Direct 1-Click Gmail Button (Always works 100%, zero blocks) */}
+          <a
+            href={clientGmailComposeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+            title="Otvori u Gmail-u sa popunjenim izveštajem i primaocem (1 klik)"
+          >
+            <Mail className="w-3.5 h-3.5 text-white" />
+            <span>✉️ Otvori u Gmail-u (1 klik)</span>
+          </a>
+
           <a
             href={clientMailtoUrl}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs transition-colors cursor-pointer"
-            title="Otvori u svom email programu (Gmail, Outlook ili telefon) sa popunjenim izveštajem"
+            title="Otvori u podrazumevanom desktop email programu (Outlook/Apple Mail)"
           >
-            <Mail className="w-3.5 h-3.5 text-blue-600" />
-            <span>Otvori u email programu</span>
+            <span>Desktop Mail (mailto:)</span>
           </a>
 
           <button
