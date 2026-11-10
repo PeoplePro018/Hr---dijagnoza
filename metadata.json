@@ -1,0 +1,6 @@
+{
+  "name": "HR Dijagnoza - People Pro",
+  "description": "Besplatna profesionalna HR dijagnostika organizacionog zdravlja za pravna lica. Otkrijte crvene tačke u Vašoj firmi u 10 ključnih oblasti i preuzmite personalizovani izveštaj sa zahvalnicom - People Pro HR Konsalting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Client submissions collection for HR Dijagnoza
+    match /client_submissions/{submissionId} {
+      // Allow any company/visitor to submit an assessment
+      allow create: if request.resource.data.companyInfo.companyName is string;
+      
+      // Allow read, update and delete
+      allow read, update, delete: if true;
+    }
+    
+    // Connection test document
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

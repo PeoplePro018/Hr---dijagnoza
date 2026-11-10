@@ -1,0 +1,46 @@
+{
+  "entities": {
+    "ClientSubmission": {
+      "title": "ClientSubmission",
+      "description": "HR Dijagnoza submission for legal entities / corporate clients",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "submittedAt": { "type": "string" },
+        "companyInfo": {
+          "type": "object",
+          "properties": {
+            "companyName": { "type": "string" },
+            "pib": { "type": "string" },
+            "maticniBroj": { "type": "string" },
+            "industry": { "type": "string" },
+            "employeeCount": { "type": "string" },
+            "contactPerson": { "type": "string" },
+            "contactRole": { "type": "string" },
+            "email": { "type": "string" },
+            "phone": { "type": "string" },
+            "city": { "type": "string" },
+            "hrSetup": { "type": "string" },
+            "primaryChallengeNote": { "type": "string" }
+          },
+          "required": ["companyName", "email", "phone"]
+        },
+        "answers": { "type": "object" },
+        "scores": { "type": "object" },
+        "status": {
+          "type": "string",
+          "enum": ["nova_prijava", "pregledano", "poslat_izvestaj", "ugovoren_sastanak", "arhivirano"]
+        },
+        "notes": { "type": "string" },
+        "notifiedConsultant": { "type": "boolean" }
+      },
+      "required": ["id", "submittedAt", "companyInfo", "answers", "scores", "status"]
+    }
+  },
+  "firestore": {
+    "/client_submissions/{submissionId}": {
+      "schema": "ClientSubmission",
+      "description": "Public company diagnostic submissions and admin status updates"
+    }
+  }
+}

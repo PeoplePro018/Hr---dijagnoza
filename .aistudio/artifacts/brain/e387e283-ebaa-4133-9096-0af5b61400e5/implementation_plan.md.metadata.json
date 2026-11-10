@@ -1,0 +1,6 @@
+{
+  "summary":  "Plan za ispravku navigacije (dugme Upitnik u zaglavlju vodi pravo na formu upitnika), automatsko pozicioniranje na vrh ekrana nakon potvrde dijagnoze, automatsko slanje izvestaja na email klijenta i Admina, i istaknuto zakazivanje konsultacija sa 1-klik sinhronizacijom u Google Kalendar.",
+  "updatedAt":  "2026-11-10T13:11:41.769724978Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}
