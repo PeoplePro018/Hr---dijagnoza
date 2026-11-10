@@ -383,6 +383,7 @@ export default function App() {
                 onCancel={() => {
                   if (currentResult) setActiveTab('rezultati');
                 }}
+                isAdmin={isAdmin}
               />
             </div>
           </div>

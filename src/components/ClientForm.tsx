@@ -26,13 +26,15 @@ interface ClientFormProps {
   initialAnswers?: Record<string, number>;
   onSubmit: (companyInfo: CompanyInfo, answers: Record<string, number>) => void;
   onCancel?: () => void;
+  isAdmin?: boolean;
 }
 
 export const ClientForm: React.FC<ClientFormProps> = ({
   initialCompanyInfo,
   initialAnswers,
   onSubmit,
-  onCancel
+  onCancel,
+  isAdmin = false
 }) => {
   // Wizard steps:
   // 0: Company Info (Pravno lice)
@@ -224,15 +226,17 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={fillSampleCompany}
-              className="text-xs font-semibold text-slate-600 hover:text-[#2761ff] bg-slate-100 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-1.5"
-              title="Automatski popuni formular za brzi test"
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <span>Demo popuna</span>
-            </button>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={fillSampleCompany}
+                className="text-xs font-semibold text-slate-600 hover:text-[#2761ff] bg-slate-100 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
+                title="Automatski popuni formular za brzi test (Vidljivo samo Adminu)"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
+                <span>Admin Demo test</span>
+              </button>
+            )}
             <div className="text-right">
               <span className="text-xs font-bold text-slate-800">
                 {answeredCount} / {totalQuestions}

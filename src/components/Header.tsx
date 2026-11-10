@@ -155,45 +155,22 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Navigation tabs */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 text-xs sm:text-sm font-semibold">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('upitnik');
-                  setTimeout(() => {
-                    const el = document.getElementById('assessment-wizard');
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    } else {
-                      window.scrollTo({ top: 380, behavior: 'smooth' });
-                    }
-                  }, 60);
-                }}
-                className={`px-3 sm:px-4 py-2 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
-                  activeTab === 'upitnik'
-                    ? 'bg-white text-[#2761ff] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Otvara HR dijagnostički upitnik za pravna lica"
-              >
-                <span>Upitnik</span>
-                <span className="hidden md:inline font-normal text-xs text-slate-400">(Za firme)</span>
-              </button>
-
-              {hasActiveResult && (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('rezultati')}
-                  className={`px-3 sm:px-4 py-2 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
-                    activeTab === 'rezultati'
-                      ? 'bg-white text-[#2761ff] shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-                  <span>Rezultati</span>
-                </button>
-              )}
+            {(hasActiveResult || isAdmin) && (
+              <div className="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 text-xs sm:text-sm font-semibold">
+                {hasActiveResult && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('rezultati')}
+                    className={`px-3 sm:px-4 py-2 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
+                      activeTab === 'rezultati'
+                        ? 'bg-white text-[#2761ff] shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                    <span>Rezultati</span>
+                  </button>
+                )}
 
               {/* CRM Database Tab - ONLY VISIBLE TO LOGGED IN ADMIN */}
               {isAdmin && (
@@ -220,6 +197,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               )}
             </div>
+          )}
 
             {/* Quick Actions & Admin controls */}
             {isAdmin && (
